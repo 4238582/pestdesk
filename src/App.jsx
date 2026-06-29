@@ -1,6 +1,8 @@
 import { useState } from "react"
 import { AppSidebar, SIDEBAR_COLLAPSED_W } from "@/components/AppSidebar"
 import { GlobalSearch } from "@/components/GlobalSearch"
+import { QuickCreatePanel } from "@/components/QuickCreatePanel"
+import { Plus } from "lucide-react"
 import Dashboard from "@/pages/Dashboard"
 import Leads from "@/pages/Leads"
 import LeadDetail from "@/pages/LeadDetail"
@@ -17,14 +19,14 @@ function PlaceholderPage({ name }) {
 
 function App() {
   const [activePage, setActivePage] = useState("Dashboard")
+  const [selectedLead, setSelectedLead] = useState(null)
+  const [quickCreate, setQuickCreate] = useState(false)
 
-  // Apply saved theme on load
   useState(() => {
     const saved = localStorage.getItem("pd-theme") || "dark"
     if (saved === "dark") document.documentElement.classList.add("dark")
     else document.documentElement.classList.remove("dark")
   })
-  const [selectedLead, setSelectedLead] = useState(null)
 
   function handleSearchNav(result) {
     if (result.type === "lead") {
@@ -33,6 +35,11 @@ function App() {
     } else {
       setActivePage("Customers")
     }
+  }
+
+  function handleQuickSave(lead) {
+    setSelectedLead(lead)
+    setActivePage("Leads")
   }
 
   const renderPage = () => {
@@ -64,18 +71,37 @@ function App() {
         className="flex flex-col flex-1 min-w-0 overflow-hidden transition-all duration-200"
         style={{ marginLeft: `${SIDEBAR_COLLAPSED_W}px` }}
       >
+        {/* Topbar */}
         <div className="flex items-center h-12 px-4 border-b bg-background gap-3 flex-shrink-0">
           <div className="flex-1 flex justify-center">
             <GlobalSearch onNavigate={handleSearchNav} />
           </div>
+
+          {/* + New lead button like Activix "+ CLIENT" */}
+          <button
+            onClick={() => setQuickCreate(true)}
+            className="flex items-center gap-1.5 text-xs font-medium text-muted-foreground hover:text-foreground border border-dashed border-border hover:border-border-strong px-3 h-8 rounded-lg transition-colors flex-shrink-0"
+          >
+            <Plus className="size-3.5" />
+            New lead
+          </button>
+
           <span className="text-sm text-muted-foreground flex-shrink-0">
             {activePage}{selectedLead ? ` · ${selectedLead.name}` : ""}
           </span>
         </div>
+
         <div className="flex-1 overflow-auto bg-muted/30">
           {renderPage()}
         </div>
       </div>
+
+      {/* Quick create panel */}
+      <QuickCreatePanel
+        open={quickCreate}
+        onClose={() => setQuickCreate(false)}
+        onSave={handleQuickSave}
+      />
     </div>
   )
 }
