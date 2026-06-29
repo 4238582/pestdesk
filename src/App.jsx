@@ -53,7 +53,7 @@ function App() {
       />
       <div
         className="flex flex-col flex-1 min-w-0 overflow-hidden transition-all duration-200"
-        style={{ marginLeft: SIDEBAR_COLLAPSED_W }}
+        style={{ marginLeft: `${SIDEBAR_COLLAPSED_W}px` }}
       >
         <div className="flex items-center h-12 px-4 border-b bg-background gap-3 flex-shrink-0">
           <div className="flex-1 flex justify-center">

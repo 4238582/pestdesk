@@ -20,8 +20,8 @@ const navManage = [
   { label: "Settings",      icon: Settings },
 ]
 
-export const SIDEBAR_COLLAPSED_W = 48
-export const SIDEBAR_EXPANDED_W = 200
+export const SIDEBAR_COLLAPSED_W = 56
+export const SIDEBAR_EXPANDED_W = 210
 
 export function AppSidebar({ activePage, setActivePage }) {
   const [expanded, setExpanded] = useState(false)
@@ -76,13 +76,13 @@ function NavSection({ items, activePage, setActivePage, expanded }) {
           <button
             key={item.label}
             onClick={() => setActivePage(item.label)}
-            className={`flex items-center gap-3 rounded-md px-2 py-2 text-sm transition-colors w-full text-left
+            className={`flex items-center gap-3 rounded-md px-2 py-1.5 text-sm transition-colors w-full text-left
               ${active
                 ? "bg-sidebar-accent text-sidebar-accent-foreground font-medium"
                 : "text-sidebar-foreground hover:bg-sidebar-accent/60"
               }`}
           >
-            <item.icon className="size-5 flex-shrink-0" />
+            <item.icon className="size-4 flex-shrink-0" />
             {expanded && <span className="whitespace-nowrap">{item.label}</span>}
           </button>
         )
