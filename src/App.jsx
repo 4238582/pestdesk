@@ -5,6 +5,7 @@ import Dashboard from "@/pages/Dashboard"
 import Leads from "@/pages/Leads"
 import LeadDetail from "@/pages/LeadDetail"
 import Customers from "@/pages/Customers"
+import Settings from "@/pages/Settings"
 
 function PlaceholderPage({ name }) {
   return (
@@ -16,6 +17,13 @@ function PlaceholderPage({ name }) {
 
 function App() {
   const [activePage, setActivePage] = useState("Dashboard")
+
+  // Apply saved theme on load
+  useState(() => {
+    const saved = localStorage.getItem("pd-theme") || "dark"
+    if (saved === "dark") document.documentElement.classList.add("dark")
+    else document.documentElement.classList.remove("dark")
+  })
   const [selectedLead, setSelectedLead] = useState(null)
 
   function handleSearchNav(result) {
@@ -41,6 +49,7 @@ function App() {
       case "Dashboard": return <Dashboard />
       case "Leads": return <Leads onSelectLead={lead => setSelectedLead(lead)} />
       case "Customers": return <Customers />
+      case "Settings": return <Settings />
       default: return <PlaceholderPage name={activePage} />
     }
   }
