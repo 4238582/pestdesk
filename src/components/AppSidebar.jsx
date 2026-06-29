@@ -1,3 +1,5 @@
+import { useSidebar } from "@/components/ui/sidebar"
+
 import {
   Sidebar,
   SidebarContent,
@@ -22,10 +24,12 @@ import {
   Settings,
   Bug,
   LogOut,
+  TrendingUp,
 } from "lucide-react"
 
 const navMain = [
   { label: "Dashboard",     icon: LayoutDashboard, href: "#dashboard" },
+  { label: "Leads",         icon: TrendingUp,      href: "#leads" },
   { label: "Customers",     icon: Users,            href: "#customers" },
   { label: "Schedule",      icon: Calendar,         href: "#schedule" },
   { label: "Jobs",          icon: ClipboardList,    href: "#jobs" },
@@ -39,8 +43,14 @@ const navManage = [
 ]
 
 export function AppSidebar({ activePage, setActivePage }) {
+  const { setOpen } = useSidebar()
+
   return (
-    <Sidebar collapsible="icon">
+    <Sidebar
+      collapsible="icon"
+      onMouseEnter={() => setOpen(true)}
+      onMouseLeave={() => setOpen(false)}
+    >
       {/* Logo */}
       <SidebarHeader>
         <SidebarMenu>
@@ -69,6 +79,7 @@ export function AppSidebar({ activePage, setActivePage }) {
                   isActive={activePage === item.label}
                   onClick={() => setActivePage(item.label)}
                   tooltip={item.label}
+                  className="[&>svg]:size-5"
                 >
                   <item.icon />
                   <span>{item.label}</span>
@@ -87,6 +98,7 @@ export function AppSidebar({ activePage, setActivePage }) {
                   isActive={activePage === item.label}
                   onClick={() => setActivePage(item.label)}
                   tooltip={item.label}
+                  className="[&>svg]:size-5"
                 >
                   <item.icon />
                   <span>{item.label}</span>
@@ -117,7 +129,6 @@ export function AppSidebar({ activePage, setActivePage }) {
         </SidebarMenu>
       </SidebarFooter>
 
-      <SidebarRail />
     </Sidebar>
   )
 }
