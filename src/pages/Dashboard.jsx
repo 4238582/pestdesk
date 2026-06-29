@@ -1,6 +1,22 @@
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import { Plus, Clock, TrendingUp, FileText, AlertCircle } from "lucide-react"
+import { ChartContainer, ChartTooltip, ChartTooltipContent } from "@/components/ui/chart"
+import { AreaChart, Area, XAxis, YAxis, CartesianGrid, ResponsiveContainer, BarChart, Bar } from "recharts"
+
+const revenueData = [
+  { month: "Jan", revenue: 9200,  jobs: 22 },
+  { month: "Feb", revenue: 11400, jobs: 27 },
+  { month: "Mar", revenue: 10800, jobs: 25 },
+  { month: "Apr", revenue: 13200, jobs: 31 },
+  { month: "May", revenue: 15600, jobs: 38 },
+  { month: "Jun", revenue: 18450, jobs: 44 },
+]
+
+const chartConfig = {
+  revenue: { label: "Revenue", color: "hsl(221, 83%, 53%)" },
+  jobs:    { label: "Jobs",    color: "hsl(142, 71%, 45%)" },
+}
 
 const metrics = [
   { label: "Jobs today",       value: "8",       sub: "3 complete · 5 remaining", icon: Clock,       color: "text-blue-600" },
@@ -56,6 +72,35 @@ export default function Dashboard() {
             <p className="text-xs text-muted-foreground mt-1">{m.sub}</p>
           </div>
         ))}
+      </div>
+
+      {/* Revenue chart */}
+      <div className="rounded-xl border bg-card p-5">
+        <div className="flex items-center justify-between mb-4">
+          <div>
+            <p className="text-sm font-medium">Monthly revenue</p>
+            <p className="text-xs text-muted-foreground">January — June 2025</p>
+          </div>
+          <div className="flex items-center gap-3 text-xs text-muted-foreground">
+            <span className="flex items-center gap-1.5"><span className="size-2 rounded-full bg-blue-500 inline-block"/>Revenue</span>
+            <span className="flex items-center gap-1.5"><span className="size-2 rounded-full bg-green-500 inline-block"/>Jobs</span>
+          </div>
+        </div>
+        <ChartContainer config={chartConfig} className="h-48 w-full">
+          <AreaChart data={revenueData} margin={{ top: 4, right: 4, left: 0, bottom: 0 }}>
+            <defs>
+              <linearGradient id="revGrad" x1="0" y1="0" x2="0" y2="1">
+                <stop offset="5%"  stopColor="hsl(221,83%,53%)" stopOpacity={0.3}/>
+                <stop offset="95%" stopColor="hsl(221,83%,53%)" stopOpacity={0}/>
+              </linearGradient>
+            </defs>
+            <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" />
+            <XAxis dataKey="month" tick={{ fontSize: 11 }} tickLine={false} axisLine={false} />
+            <YAxis tick={{ fontSize: 11 }} tickLine={false} axisLine={false} tickFormatter={v => `$${(v/1000).toFixed(0)}k`} />
+            <ChartTooltip content={<ChartTooltipContent />} />
+            <Area type="monotone" dataKey="revenue" stroke="hsl(221,83%,53%)" fill="url(#revGrad)" fillOpacity={1} strokeWidth={2} dot={false} />
+          </AreaChart>
+        </ChartContainer>
       </div>
 
       {/* Main content */}
