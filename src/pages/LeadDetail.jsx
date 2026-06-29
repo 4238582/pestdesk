@@ -14,9 +14,13 @@ import {
 const colleagues = ["Jean-Philippe", "Marie-Eve", "Luc", "Sandra", "Robert"]
 const reps = ["—", "Jean-Philippe", "Marie-Eve", "Luc", "Sandra"]
 const taskTypes = [
-  { value: "call",  label: "Call",  icon: Phone },
-  { value: "email", label: "Email", icon: Mail },
-  { value: "sms",   label: "SMS",   icon: MessageSquare },
+  { value: "call",        label: "Call",             icon: Phone },
+  { value: "email",       label: "Email",            icon: Mail },
+  { value: "sms",         label: "SMS",              icon: MessageSquare },
+  { value: "appointment", label: "Appointment",      icon: Calendar },
+  { value: "inspection",  label: "Site inspection",  icon: Bug },
+  { value: "quote",       label: "Send quote",       icon: FileText },
+  { value: "followup",    label: "Follow-up",        icon: CheckCircle2 },
 ]
 const pipeline = [
   { key: "New",       label: "New lead" },
@@ -26,6 +30,68 @@ const pipeline = [
   { key: "Complete",  label: "Complete" },
   { key: "Invoiced",  label: "Invoiced" },
 ]
+
+function TaskTypeSelect({ value, onChange }) {
+  const [search, setSearch] = useState("")
+  const [open, setOpen] = useState(false)
+  const selected = taskTypes.find(t => t.value === value)
+  const filtered = taskTypes.filter(t => t.label.toLowerCase().includes(search.toLowerCase()))
+
+  return (
+    <div>
+      <Label className="text-xs text-muted-foreground">Type <span className="text-red-500">*</span></Label>
+      <div className="relative mt-1">
+        <button
+          type="button"
+          onClick={() => setOpen(o => !o)}
+          className="w-full flex items-center justify-between h-9 px-3 rounded-md border bg-background text-sm hover:bg-accent transition-colors"
+        >
+          {selected ? (
+            <span className="flex items-center gap-2">
+              <selected.icon className="size-4 text-muted-foreground" />
+              {selected.label}
+            </span>
+          ) : (
+            <span className="text-muted-foreground">No selection</span>
+          )}
+          <svg className="size-4 text-muted-foreground" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M6 9l6 6 6-6"/></svg>
+        </button>
+
+        {open && (
+          <div className="absolute top-10 left-0 w-full bg-popover border rounded-lg shadow-lg z-50 overflow-hidden">
+            <div className="flex items-center gap-2 px-3 py-2 border-b">
+              <svg className="size-3.5 text-muted-foreground flex-shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><circle cx="11" cy="11" r="8"/><path d="M21 21l-4.35-4.35"/></svg>
+              <input
+                autoFocus
+                className="flex-1 text-xs bg-transparent outline-none"
+                placeholder="Search..."
+                value={search}
+                onChange={e => setSearch(e.target.value)}
+              />
+            </div>
+            <div className="max-h-48 overflow-y-auto">
+              {filtered.map(t => (
+                <button
+                  key={t.value}
+                  type="button"
+                  onClick={() => { onChange(t.value); setOpen(false); setSearch("") }}
+                  className={`w-full flex items-center gap-3 px-3 py-2.5 text-sm hover:bg-accent text-left transition-colors
+                    ${value === t.value ? "bg-accent/60" : ""}`}
+                >
+                  <t.icon className="size-4 text-muted-foreground flex-shrink-0" />
+                  {t.label}
+                </button>
+              ))}
+              {filtered.length === 0 && (
+                <p className="px-3 py-3 text-xs text-muted-foreground">No results</p>
+              )}
+            </div>
+          </div>
+        )}
+      </div>
+    </div>
+  )
+}
 
 export default function LeadDetail({ lead, onBack, onUpdate }) {
   const [tasks, setTasks]       = useState([])
@@ -328,30 +394,53 @@ export default function LeadDetail({ lead, onBack, onUpdate }) {
         ))}
       </div>
 
-      {/* Task dialog */}
+      {/* Task dialog — Activix style */}
       <Dialog open={taskDialog} onOpenChange={setTaskDialog}>
-        <DialogContent className="max-w-sm">
-          <DialogHeader><DialogTitle>Add task</DialogTitle></DialogHeader>
-          <div className="flex flex-col gap-3 py-2">
+        <DialogContent className="max-w-md">
+          <DialogHeader>
+            <DialogTitle className="text-base">Add a task or appointment</DialogTitle>
+          </DialogHeader>
+          <div className="flex flex-col gap-4 py-2">
+
+            {/* Type — searchable */}
+            <TaskTypeSelect
+              value={newTask.type}
+              onChange={v => setNewTask({...newTask, type: v})}
+            />
+
+            {/* Description */}
             <div>
-              <Label>Task type</Label>
-              <Select value={newTask.type} onValueChange={v => setNewTask({...newTask, type: v})}>
-                <SelectTrigger className="mt-1"><SelectValue /></SelectTrigger>
-                <SelectContent>{taskTypes.map(t => <SelectItem key={t.value} value={t.value}>{t.label}</SelectItem>)}</SelectContent>
-              </Select>
-            </div>
-            <div>
-              <Label>Description</Label>
+              <Label className="text-xs text-muted-foreground">Description</Label>
               <Input className="mt-1" placeholder="e.g. Follow up call" value={newTask.label} onChange={e => setNewTask({...newTask, label: e.target.value})} />
             </div>
-            <div>
-              <Label>Due date</Label>
-              <Input className="mt-1" type="date" value={newTask.due} onChange={e => setNewTask({...newTask, due: e.target.value})} />
+
+            {/* Date + Time row */}
+            <div className="grid grid-cols-2 gap-3">
+              <div>
+                <Label className="text-xs text-muted-foreground">Date</Label>
+                <Input className="mt-1" type="date" value={newTask.due} onChange={e => setNewTask({...newTask, due: e.target.value})} />
+              </div>
+              <div>
+                <Label className="text-xs text-muted-foreground">Time</Label>
+                <Input className="mt-1" type="time" value={newTask.time || ""} onChange={e => setNewTask({...newTask, time: e.target.value})} />
+              </div>
             </div>
+
+            {/* Assign to */}
+            <div>
+              <Label className="text-xs text-muted-foreground">Assign to</Label>
+              <Select value={newTask.assignedTo || "Jean-Philippe"} onValueChange={v => setNewTask({...newTask, assignedTo: v})}>
+                <SelectTrigger className="mt-1"><SelectValue /></SelectTrigger>
+                <SelectContent>
+                  {["Jean-Philippe","Marie-Eve","Luc","Sandra"].map(r => <SelectItem key={r} value={r}>{r}</SelectItem>)}
+                </SelectContent>
+              </Select>
+            </div>
+
           </div>
           <DialogFooter>
-            <Button variant="outline" onClick={() => setTaskDialog(false)}>Cancel</Button>
-            <Button onClick={saveTask}>Add task</Button>
+            <Button variant="outline" onClick={() => { setTaskDialog(false); setNewTask({ type: "", label: "", due: "" }) }}>Cancel</Button>
+            <Button onClick={saveTask} className="bg-blue-600 hover:bg-blue-700">Save</Button>
           </DialogFooter>
         </DialogContent>
       </Dialog>
