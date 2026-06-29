@@ -160,10 +160,10 @@ export default function LeadDetail({ lead, onBack, onUpdate }) {
       </div>
 
       {/* ── 3 panels ── */}
-      <div className="flex gap-4 p-4 border-b bg-background flex-shrink-0">
+      <div className="flex gap-4 p-4 border-b bg-background flex-shrink-0" style={{height: 380}}>
 
         {/* Tasks */}
-        <div className="flex-1 rounded-lg border flex flex-col overflow-hidden" style={{minHeight: 160}}>
+        <div className="flex-1 rounded-lg border flex flex-col overflow-hidden" style={{height: 360}}>
           <div className="flex items-center justify-between px-3 py-2.5 border-b">
             <span className="text-xs font-semibold">Tasks & appointments</span>
             <button onClick={() => setTaskDialog(true)}
@@ -192,7 +192,7 @@ export default function LeadDetail({ lead, onBack, onUpdate }) {
         </div>
 
         {/* Communications */}
-        <div className="flex-1 rounded-lg border flex flex-col overflow-hidden" style={{minHeight: 160}}>
+        <div className="flex-1 rounded-lg border flex flex-col overflow-hidden" style={{height: 360}}>
           <div className="flex items-center gap-2 px-3 py-2.5 border-b">
             <span className="text-xs font-semibold">Communications</span>
           </div>
@@ -203,18 +203,18 @@ export default function LeadDetail({ lead, onBack, onUpdate }) {
         </div>
 
         {/* Notes */}
-        <div className="flex-1 rounded-lg border flex flex-col overflow-hidden" style={{minHeight: 160}}>
+        <div className="flex-1 rounded-lg border flex flex-col overflow-hidden" style={{height: 360}}>
           <div className="flex items-center gap-2 px-3 py-2.5 border-b">
             <span className="text-xs font-semibold">Notes</span>
           </div>
-          <div className="flex-1 relative">
+          <div className="flex-1 overflow-y-auto">
             {notes.length === 0 ? (
               <div className="flex flex-col items-center justify-center h-full gap-2 text-muted-foreground p-4">
                 <FileText className="size-8 opacity-25" />
                 <p className="text-xs">No notes</p>
               </div>
             ) : (
-              <div className="p-2 flex flex-col gap-1.5 overflow-y-auto max-h-32">
+              <div className="p-2 flex flex-col gap-1.5">
                 {notes.map(note => (
                   <div key={note.id} className="rounded border bg-card p-2">
                     <div className="flex items-center gap-1.5 mb-1">
@@ -227,44 +227,39 @@ export default function LeadDetail({ lead, onBack, onUpdate }) {
                 ))}
               </div>
             )}
-            {/* Inline composer at bottom of Notes box */}
-            <div className="border-t p-2 relative">
-              <div className="flex items-center gap-1.5 mb-1.5">
-                <div className="size-6 rounded-full bg-blue-100 text-blue-700 flex items-center justify-center text-xs font-semibold flex-shrink-0">JP</div>
-                <span className="text-xs text-muted-foreground">Add a note or drop a file here</span>
-              </div>
-              <textarea
-                className="w-full rounded border bg-muted/20 p-2 text-xs resize-none outline-none focus:ring-1 focus:ring-ring"
-                style={{minHeight: 52}}
-                placeholder="Write a note... type @ to tag"
-                value={noteText}
-                onChange={handleNoteInput}
-                onKeyDown={e => { if (e.key === "Enter" && e.ctrlKey) saveNote() }}
-              />
-              {showTagMenu && filteredColleagues.length > 0 && (
-                <div className="absolute bottom-20 left-2 bg-popover border rounded-lg shadow-lg z-50 w-40 overflow-hidden">
-                  {filteredColleagues.map(c => (
-                    <div key={c} onMouseDown={() => tagColleague(c)}
-                      className="flex items-center gap-2 px-3 py-2 hover:bg-accent cursor-pointer text-xs">
-                      <div className="size-5 rounded-full bg-blue-100 text-blue-700 flex items-center justify-center text-xs font-semibold">{c.slice(0,2).toUpperCase()}</div>
-                      {c}
-                    </div>
-                  ))}
-                </div>
-              )}
-              <div className="flex items-center justify-between mt-1.5">
-                <div className="flex items-center gap-2">
-                  <button className="text-muted-foreground hover:text-foreground"><User className="size-3.5" /></button>
-                  <button className="text-muted-foreground hover:text-foreground"><MessageSquare className="size-3.5" /></button>
-                </div>
-                <button onClick={saveNote}
-                  className="text-xs bg-blue-600 hover:bg-blue-700 text-white px-3 py-1 rounded font-medium transition-colors">
-                  Save
-                </button>
-              </div>
-            </div>
           </div>
         </div>
+      </div>
+
+      {/* ── Note composer (below the 3 panels, above pipeline) ── */}
+      <div className="border-b bg-background flex-shrink-0 relative">
+        <div className="flex items-center gap-3 px-4 py-2 border-b">
+          <div className="size-7 rounded-full bg-blue-100 text-blue-700 flex items-center justify-center text-xs font-semibold flex-shrink-0">JP</div>
+          <span className="text-xs text-muted-foreground">Add a note or drop a file here</span>
+          <div className="ml-auto flex items-center gap-2">
+            <button className="text-muted-foreground hover:text-foreground"><User className="size-3.5" /></button>
+            <button className="text-muted-foreground hover:text-foreground"><MessageSquare className="size-3.5" /></button>
+            <button onClick={saveNote} className="text-xs bg-blue-600 hover:bg-blue-700 text-white px-4 py-1.5 rounded font-medium transition-colors">Save</button>
+          </div>
+        </div>
+        <textarea
+          className="w-full bg-transparent px-4 py-2 text-xs resize-none outline-none min-h-[60px]"
+          placeholder="Write a note... type @ to tag a colleague"
+          value={noteText}
+          onChange={handleNoteInput}
+          onKeyDown={e => { if (e.key === "Enter" && e.ctrlKey) saveNote() }}
+        />
+        {showTagMenu && filteredColleagues.length > 0 && (
+          <div className="absolute bottom-16 left-16 bg-popover border rounded-lg shadow-lg z-50 w-40 overflow-hidden">
+            {filteredColleagues.map(c => (
+              <div key={c} onMouseDown={() => tagColleague(c)}
+                className="flex items-center gap-2 px-3 py-2 hover:bg-accent cursor-pointer text-xs">
+                <div className="size-5 rounded-full bg-blue-100 text-blue-700 flex items-center justify-center text-xs font-semibold">{c.slice(0,2).toUpperCase()}</div>
+                {c}
+              </div>
+            ))}
+          </div>
+        )}
       </div>
 
       {/* ── Pipeline (Activix "Navigateur d'offres" style) ── */}
