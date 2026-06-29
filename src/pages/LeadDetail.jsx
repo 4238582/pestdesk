@@ -58,7 +58,7 @@ function TaskTypeSelect({ value, onChange }) {
         </button>
 
         {open && (
-          <div className="absolute top-10 left-0 w-full bg-popover border rounded-lg shadow-lg z-50 overflow-hidden">
+          <div className="absolute top-10 left-0 w-full border rounded-lg shadow-lg z-50 overflow-hidden" style={{ background: "hsl(220, 13%, 13%)" }}>
             <div className="flex items-center gap-2 px-3 py-2 border-b">
               <svg className="size-3.5 text-muted-foreground flex-shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><circle cx="11" cy="11" r="8"/><path d="M21 21l-4.35-4.35"/></svg>
               <input

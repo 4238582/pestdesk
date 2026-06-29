@@ -2,8 +2,10 @@ import { useState } from "react"
 import { AppSidebar, SIDEBAR_COLLAPSED_W } from "@/components/AppSidebar"
 import { GlobalSearch } from "@/components/GlobalSearch"
 import { QuickCreatePanel } from "@/components/QuickCreatePanel"
-import { Plus } from "lucide-react"
+import { Plus, Calendar as CalendarIcon } from "lucide-react"
+import { NotificationsPanel } from "@/components/NotificationsPanel"
 import Dashboard from "@/pages/Dashboard"
+import Calendar from "@/pages/Calendar"
 import Leads from "@/pages/Leads"
 import LeadDetail from "@/pages/LeadDetail"
 import Customers from "@/pages/Customers"
@@ -56,6 +58,7 @@ function App() {
       case "Dashboard": return <Dashboard />
       case "Leads": return <Leads onSelectLead={lead => setSelectedLead(lead)} />
       case "Customers": return <Customers />
+      case "Schedule": return <Calendar />
       case "Settings": return <Settings />
       default: return <PlaceholderPage name={activePage} />
     }
@@ -84,9 +87,15 @@ function App() {
             New lead
           </button>
 
-          <span className="ml-auto text-sm text-muted-foreground flex-shrink-0">
-            {activePage}{selectedLead ? ` · ${selectedLead.name}` : ""}
-          </span>
+          <div className="ml-auto flex items-center gap-1 flex-shrink-0">
+            <NotificationsPanel />
+            <button
+              onClick={() => { setActivePage("Schedule"); setSelectedLead(null) }}
+              className="relative flex items-center justify-center size-9 rounded-lg hover:bg-accent transition-colors text-muted-foreground hover:text-foreground"
+            >
+              <CalendarIcon className="size-4" />
+            </button>
+          </div>
         </div>
 
         <div className="flex-1 overflow-auto bg-muted/30">
