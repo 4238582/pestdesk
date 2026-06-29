@@ -322,7 +322,11 @@ export default function LeadDetail({ lead, onBack, onUpdate }) {
           <div className="size-7 rounded-full bg-blue-100 text-blue-700 flex items-center justify-center text-xs font-semibold flex-shrink-0">JP</div>
           <span className="text-xs text-muted-foreground">Add a note or drop a file here</span>
           <div className="ml-auto flex items-center gap-3">
-            <button className="text-muted-foreground hover:text-foreground"><User className="size-4" /></button>
+            <button
+              onClick={() => { setShowTagMenu(m => !m); setTagSearch("") }}
+              className={`hover:text-foreground transition-colors ${showTagMenu ? "text-blue-500" : "text-muted-foreground"}`}
+              title="Tag a colleague"
+            ><User className="size-4" /></button>
             <button className="text-muted-foreground hover:text-foreground"><MessageSquare className="size-4" /></button>
             <button onClick={saveNote} className="text-xs bg-blue-600 hover:bg-blue-700 text-white px-4 py-1.5 rounded font-medium transition-colors">Save</button>
           </div>
@@ -334,13 +338,17 @@ export default function LeadDetail({ lead, onBack, onUpdate }) {
           onChange={handleNoteInput}
           onKeyDown={e => { if (e.key === "Enter" && e.ctrlKey) saveNote() }}
         />
-        {showTagMenu && filteredColleagues.length > 0 && (
-          <div className="absolute bottom-16 left-16 bg-popover border rounded-lg shadow-lg z-50 w-40 overflow-hidden">
+        {showTagMenu && (
+          <div className="absolute bottom-20 left-3 border rounded-lg shadow-xl z-50 w-44 overflow-hidden"
+            style={{ background: "hsl(220, 13%, 13%)" }}>
+            <div className="px-3 py-2 border-b">
+              <p className="text-xs text-muted-foreground font-medium">Tag a colleague</p>
+            </div>
             {filteredColleagues.map(c => (
               <div key={c} onMouseDown={() => tagColleague(c)}
-                className="flex items-center gap-2 px-3 py-2 hover:bg-accent cursor-pointer text-xs">
-                <div className="size-5 rounded-full bg-blue-100 text-blue-700 flex items-center justify-center text-xs font-semibold">{c.slice(0,2).toUpperCase()}</div>
-                {c}
+                className="flex items-center gap-2 px-3 py-2.5 hover:bg-accent/50 cursor-pointer">
+                <div className="size-6 rounded-full bg-blue-100 text-blue-700 flex items-center justify-center text-xs font-semibold flex-shrink-0">{c.slice(0,2).toUpperCase()}</div>
+                <span className="text-xs">{c}</span>
               </div>
             ))}
           </div>
@@ -383,6 +391,27 @@ export default function LeadDetail({ lead, onBack, onUpdate }) {
         <button className="mt-4 text-xs bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded flex items-center gap-1.5 transition-colors">
           <Bug className="size-3.5" /> Add service
         </button>
+      </div>
+
+      {/* ── Invoice history ── */}
+      <div className="flex-shrink-0 border-t px-6 py-4 bg-background">
+        <div className="flex items-center justify-between mb-3">
+          <p className="text-sm font-medium">Invoice history</p>
+          <button className="text-xs text-blue-500 hover:text-blue-400">+ New invoice</button>
+        </div>
+        <div className="flex flex-col gap-2">
+          {[
+            { id: "INV-001", date: "Jun 10, 2025", service: "Inspection", amount: 285, status: "Paid" },
+          ].map(inv => (
+            <div key={inv.id} className="flex items-center justify-between text-xs py-2 border-b last:border-0">
+              <span className="text-muted-foreground font-mono">{inv.id}</span>
+              <span className="text-muted-foreground">{inv.date}</span>
+              <span className="truncate max-w-[160px] text-muted-foreground">{inv.service}</span>
+              <span className="font-medium">${inv.amount}</span>
+              <span className={`px-2 py-0.5 rounded-full font-medium ${inv.status === "Paid" ? "bg-green-100 text-green-700" : "bg-amber-100 text-amber-700"}`}>{inv.status}</span>
+            </div>
+          ))}
+        </div>
       </div>
 
       {/* ── Bottom action bar (like Activix) ── */}

@@ -6,6 +6,7 @@ import { Plus, Calendar as CalendarIcon } from "lucide-react"
 import { NotificationsPanel } from "@/components/NotificationsPanel"
 import Dashboard from "@/pages/Dashboard"
 import Calendar from "@/pages/Calendar"
+import Invoices from "@/pages/Invoices"
 import Leads from "@/pages/Leads"
 import LeadDetail from "@/pages/LeadDetail"
 import Customers from "@/pages/Customers"
@@ -59,6 +60,7 @@ function App() {
       case "Leads": return <Leads onSelectLead={lead => setSelectedLead(lead)} />
       case "Customers": return <Customers />
       case "Schedule": return <Calendar />
+      case "Invoices": return <Invoices />
       case "Settings": return <Settings />
       default: return <PlaceholderPage name={activePage} />
     }
