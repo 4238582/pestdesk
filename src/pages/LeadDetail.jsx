@@ -396,7 +396,7 @@ export default function LeadDetail({ lead, onBack, onUpdate }) {
 
       {/* Task dialog — Activix style */}
       <Dialog open={taskDialog} onOpenChange={setTaskDialog}>
-        <DialogContent className="max-w-md">
+        <DialogContent className="max-w-md" style={{ background: "hsl(220, 13%, 13%)" }}>
           <DialogHeader>
             <DialogTitle className="text-base">Add a task or appointment</DialogTitle>
           </DialogHeader>

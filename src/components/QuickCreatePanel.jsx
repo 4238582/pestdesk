@@ -33,15 +33,16 @@ export function QuickCreatePanel({ open, onClose, onSave }) {
       {/* Backdrop */}
       <div
         className="fixed inset-0 z-30"
-        style={{ background: "rgba(0,0,0,0.45)" }}
+        style={{ background: "rgba(0,0,0,0.75)" }}
         onClick={onClose}
       />
 
       {/* Panel — slides up from bottom */}
-      <div className="fixed bottom-0 left-0 right-0 z-40 bg-background border-t shadow-2xl flex flex-col rounded-t-2xl"
+      <div className="fixed bottom-0 left-0 right-0 z-40 border-t shadow-2xl flex flex-col rounded-t-2xl"
+        style={{ background: "hsl(220, 13%, 13%)" }}
         style={{ maxHeight: "85vh" }}>
         {/* Header */}
-        <div className="flex items-center justify-between px-5 py-4 border-b flex-shrink-0">
+        <div className="flex items-center justify-between px-5 py-4 border-b flex-shrink-0" style={{ background: "hsl(220, 13%, 11%)" }}>
           <h2 className="text-sm font-semibold">New lead</h2>
           <div className="flex items-center gap-2">
             <button onClick={reset} className="text-muted-foreground hover:text-foreground transition-colors" title="Reset">
@@ -54,7 +55,7 @@ export function QuickCreatePanel({ open, onClose, onSave }) {
         </div>
 
         {/* Form */}
-        <div className="flex-1 overflow-y-auto px-6 py-5 grid grid-cols-3 gap-4 content-start">
+        <div className="flex-1 overflow-y-auto px-6 py-5 grid grid-cols-3 gap-4 content-start" style={{ background: "hsl(220, 13%, 13%)" }}>
 
           {/* Full name */}
           <div>
@@ -139,7 +140,7 @@ export function QuickCreatePanel({ open, onClose, onSave }) {
         </div>
 
         {/* Footer */}
-        <div className="flex items-center justify-between px-5 py-4 border-t flex-shrink-0">
+        <div className="flex items-center justify-between px-5 py-4 border-t flex-shrink-0" style={{ background: "hsl(220, 13%, 11%)" }}>
           <button onClick={onClose} className="text-sm text-muted-foreground hover:text-foreground transition-colors">
             Cancel
           </button>
