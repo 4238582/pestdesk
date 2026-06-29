@@ -31,10 +31,15 @@ export function QuickCreatePanel({ open, onClose, onSave }) {
   return (
     <>
       {/* Backdrop */}
-      <div className="fixed inset-0 z-30 bg-black/30" onClick={onClose} />
+      <div
+        className="fixed inset-0 z-30"
+        style={{ background: "rgba(0,0,0,0.45)" }}
+        onClick={onClose}
+      />
 
-      {/* Panel */}
-      <div className="fixed right-0 top-0 h-full w-96 z-40 bg-background border-l shadow-xl flex flex-col">
+      {/* Panel — slides up from bottom */}
+      <div className="fixed bottom-0 left-0 right-0 z-40 bg-background border-t shadow-2xl flex flex-col rounded-t-2xl"
+        style={{ maxHeight: "85vh" }}>
         {/* Header */}
         <div className="flex items-center justify-between px-5 py-4 border-b flex-shrink-0">
           <h2 className="text-sm font-semibold">New lead</h2>
@@ -49,7 +54,7 @@ export function QuickCreatePanel({ open, onClose, onSave }) {
         </div>
 
         {/* Form */}
-        <div className="flex-1 overflow-y-auto px-5 py-4 flex flex-col gap-4">
+        <div className="flex-1 overflow-y-auto px-6 py-5 grid grid-cols-3 gap-4 content-start">
 
           {/* Full name */}
           <div>
@@ -72,7 +77,7 @@ export function QuickCreatePanel({ open, onClose, onSave }) {
           </div>
 
           {/* Phone + Email */}
-          <div className="grid grid-cols-2 gap-3">
+          <div className="grid grid-cols-2 gap-3 col-span-1">
             <div>
               <Label className="text-xs text-muted-foreground">Phone <span className="text-red-500">*</span></Label>
               <div className="relative mt-1">
@@ -103,44 +108,34 @@ export function QuickCreatePanel({ open, onClose, onSave }) {
             </Select>
           </div>
 
-          {/* Additional fields toggle */}
-          <button
-            onClick={() => setShowExtra(e => !e)}
-            className="flex items-center gap-2 text-xs text-muted-foreground hover:text-foreground transition-colors"
-          >
-            <ChevronDown className={`size-3.5 transition-transform ${showExtra ? "rotate-180" : ""}`} />
-            Additional fields
-          </button>
+          {/* Address */}
+          <div>
+            <Label className="text-xs text-muted-foreground">Address</Label>
+            <div className="relative mt-1">
+              <MapPin className="absolute left-2.5 top-2.5 size-3.5 text-muted-foreground" />
+              <Input className="pl-8" placeholder="123 Rue Principale, Gatineau" value={form.address} onChange={e => setForm({...form, address: e.target.value})} />
+            </div>
+          </div>
 
-          {showExtra && (
-            <>
-              <div>
-                <Label className="text-xs text-muted-foreground">Address</Label>
-                <div className="relative mt-1">
-                  <MapPin className="absolute left-2.5 top-2.5 size-3.5 text-muted-foreground" />
-                  <Input className="pl-8" placeholder="123 Rue Principale, Gatineau" value={form.address} onChange={e => setForm({...form, address: e.target.value})} />
-                </div>
-              </div>
+          {/* Pest type */}
+          <div>
+            <Label className="text-xs text-muted-foreground">Pest type</Label>
+            <Select value={form.pest} onValueChange={v => setForm({...form, pest: v})}>
+              <SelectTrigger className="mt-1"><SelectValue placeholder="Select pest" /></SelectTrigger>
+              <SelectContent>{pestTypes.map(p => <SelectItem key={p} value={p}>{p}</SelectItem>)}</SelectContent>
+            </Select>
+          </div>
 
-              <div>
-                <Label className="text-xs text-muted-foreground">Pest type</Label>
-                <Select value={form.pest} onValueChange={v => setForm({...form, pest: v})}>
-                  <SelectTrigger className="mt-1"><SelectValue placeholder="Select pest" /></SelectTrigger>
-                  <SelectContent>{pestTypes.map(p => <SelectItem key={p} value={p}>{p}</SelectItem>)}</SelectContent>
-                </Select>
-              </div>
-
-              <div>
-                <Label className="text-xs text-muted-foreground">Notes</Label>
-                <textarea
-                  className="w-full mt-1 rounded-md border bg-background px-3 py-2 text-sm resize-none outline-none focus:ring-1 focus:ring-ring min-h-[80px]"
-                  placeholder="What did the client say?"
-                  value={form.notes}
-                  onChange={e => setForm({...form, notes: e.target.value})}
-                />
-              </div>
-            </>
-          )}
+          {/* Notes — full width */}
+          <div className="col-span-3">
+            <Label className="text-xs text-muted-foreground">Notes</Label>
+            <textarea
+              className="w-full mt-1 rounded-md border bg-background px-3 py-2 text-sm resize-none outline-none focus:ring-1 focus:ring-ring min-h-[60px]"
+              placeholder="What did the client say?"
+              value={form.notes}
+              onChange={e => setForm({...form, notes: e.target.value})}
+            />
+          </div>
         </div>
 
         {/* Footer */}

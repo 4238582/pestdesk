@@ -72,12 +72,10 @@ function App() {
         style={{ marginLeft: `${SIDEBAR_COLLAPSED_W}px` }}
       >
         {/* Topbar */}
-        <div className="flex items-center h-12 px-4 border-b bg-background gap-3 flex-shrink-0">
-          <div className="flex-1 flex justify-center">
-            <GlobalSearch onNavigate={handleSearchNav} />
-          </div>
+        <div className="flex items-center h-12 px-4 border-b bg-background gap-2 flex-shrink-0">
+          <GlobalSearch onNavigate={handleSearchNav} />
 
-          {/* + New lead button like Activix "+ CLIENT" */}
+          {/* + New lead right next to search like Activix "+ CLIENT" */}
           <button
             onClick={() => setQuickCreate(true)}
             className="flex items-center gap-1.5 text-xs font-medium text-muted-foreground hover:text-foreground border border-dashed border-border hover:border-border-strong px-3 h-8 rounded-lg transition-colors flex-shrink-0"
@@ -86,7 +84,7 @@ function App() {
             New lead
           </button>
 
-          <span className="text-sm text-muted-foreground flex-shrink-0">
+          <span className="ml-auto text-sm text-muted-foreground flex-shrink-0">
             {activePage}{selectedLead ? ` · ${selectedLead.name}` : ""}
           </span>
         </div>

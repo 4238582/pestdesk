@@ -34,7 +34,7 @@ export function GlobalSearch({ onNavigate }) {
   }, [])
 
   return (
-    <div ref={ref} className="relative w-full max-w-md">
+    <div ref={ref} className="relative w-72">
       <div className="flex items-center gap-2 h-9 px-3 rounded-lg border bg-muted/50 text-sm">
         <Search className="size-4 text-muted-foreground flex-shrink-0" />
         <input
