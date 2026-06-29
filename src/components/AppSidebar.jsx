@@ -1,134 +1,92 @@
-import { useSidebar } from "@/components/ui/sidebar"
-
+import { useState } from "react"
 import {
-  Sidebar,
-  SidebarContent,
-  SidebarFooter,
-  SidebarGroup,
-  SidebarGroupLabel,
-  SidebarHeader,
-  SidebarMenu,
-  SidebarMenuButton,
-  SidebarMenuItem,
-  SidebarRail,
-} from "@/components/ui/sidebar"
-import { Avatar, AvatarFallback } from "@/components/ui/avatar"
-import {
-  LayoutDashboard,
-  Users,
-  Calendar,
-  ClipboardList,
-  FileText,
-  BarChart2,
-  MapPin,
-  Settings,
-  Bug,
-  LogOut,
-  TrendingUp,
+  LayoutDashboard, TrendingUp, Users, Calendar,
+  ClipboardList, FileText, MapPin, BarChart2,
+  Settings, Bug, LogOut,
 } from "lucide-react"
 
 const navMain = [
-  { label: "Dashboard",     icon: LayoutDashboard, href: "#dashboard" },
-  { label: "Leads",         icon: TrendingUp,      href: "#leads" },
-  { label: "Customers",     icon: Users,            href: "#customers" },
-  { label: "Schedule",      icon: Calendar,         href: "#schedule" },
-  { label: "Jobs",          icon: ClipboardList,    href: "#jobs" },
+  { label: "Dashboard",     icon: LayoutDashboard },
+  { label: "Leads",         icon: TrendingUp },
+  { label: "Customers",     icon: Users },
+  { label: "Schedule",      icon: Calendar },
+  { label: "Jobs",          icon: ClipboardList },
 ]
 
 const navManage = [
-  { label: "Invoices",      icon: FileText,   href: "#invoices" },
-  { label: "Service areas", icon: MapPin,     href: "#areas" },
-  { label: "Reports",       icon: BarChart2,  href: "#reports" },
-  { label: "Settings",      icon: Settings,   href: "#settings" },
+  { label: "Invoices",      icon: FileText },
+  { label: "Service areas", icon: MapPin },
+  { label: "Reports",       icon: BarChart2 },
+  { label: "Settings",      icon: Settings },
 ]
 
+export const SIDEBAR_COLLAPSED_W = 48
+export const SIDEBAR_EXPANDED_W = 200
+
 export function AppSidebar({ activePage, setActivePage }) {
-  const { setOpen } = useSidebar()
+  const [expanded, setExpanded] = useState(false)
+
+  const w = expanded ? SIDEBAR_EXPANDED_W : SIDEBAR_COLLAPSED_W
 
   return (
-    <Sidebar
-      collapsible="icon"
-      onMouseEnter={() => setOpen(true)}
-      onMouseLeave={() => setOpen(false)}
+    <div
+      className="fixed inset-y-0 left-0 z-20 flex flex-col bg-sidebar border-r border-sidebar-border transition-all duration-200 overflow-hidden"
+      style={{ width: w }}
+      onMouseEnter={() => setExpanded(true)}
+      onMouseLeave={() => setExpanded(false)}
     >
       {/* Logo */}
-      <SidebarHeader>
-        <SidebarMenu>
-          <SidebarMenuItem>
-            <SidebarMenuButton size="lg" className="pointer-events-none">
-              <div className="flex aspect-square size-8 items-center justify-center rounded-lg bg-blue-600 text-white">
-                <Bug className="size-4" />
-              </div>
-              <div className="flex flex-col gap-0.5 leading-none">
-                <span className="font-semibold text-sm">PestDesk</span>
-                <span className="text-xs text-muted-foreground">v1.0</span>
-              </div>
-            </SidebarMenuButton>
-          </SidebarMenuItem>
-        </SidebarMenu>
-      </SidebarHeader>
+      <div className="flex items-center gap-3 px-3 h-12 border-b border-sidebar-border flex-shrink-0">
+        <div className="flex items-center justify-center size-7 rounded-lg bg-blue-600 text-white flex-shrink-0">
+          <Bug className="size-4" />
+        </div>
+        {expanded && <span className="font-semibold text-sm whitespace-nowrap">PestDesk</span>}
+      </div>
 
       {/* Nav */}
-      <SidebarContent>
-        <SidebarGroup>
-          <SidebarGroupLabel>Main</SidebarGroupLabel>
-          <SidebarMenu>
-            {navMain.map((item) => (
-              <SidebarMenuItem key={item.label}>
-                <SidebarMenuButton
-                  isActive={activePage === item.label}
-                  onClick={() => setActivePage(item.label)}
-                  tooltip={item.label}
-                  className="[&>svg]:size-5"
-                >
-                  <item.icon />
-                  <span>{item.label}</span>
-                </SidebarMenuButton>
-              </SidebarMenuItem>
-            ))}
-          </SidebarMenu>
-        </SidebarGroup>
+      <div className="flex-1 overflow-hidden py-2">
+        <NavSection items={navMain} activePage={activePage} setActivePage={setActivePage} expanded={expanded} />
+        <div className="mx-3 my-2 border-t border-sidebar-border" />
+        <NavSection items={navManage} activePage={activePage} setActivePage={setActivePage} expanded={expanded} />
+      </div>
 
-        <SidebarGroup>
-          <SidebarGroupLabel>Management</SidebarGroupLabel>
-          <SidebarMenu>
-            {navManage.map((item) => (
-              <SidebarMenuItem key={item.label}>
-                <SidebarMenuButton
-                  isActive={activePage === item.label}
-                  onClick={() => setActivePage(item.label)}
-                  tooltip={item.label}
-                  className="[&>svg]:size-5"
-                >
-                  <item.icon />
-                  <span>{item.label}</span>
-                </SidebarMenuButton>
-              </SidebarMenuItem>
-            ))}
-          </SidebarMenu>
-        </SidebarGroup>
-      </SidebarContent>
+      {/* User */}
+      <div className="flex items-center gap-3 px-3 py-3 border-t border-sidebar-border flex-shrink-0">
+        <div className="size-7 rounded-full bg-blue-100 text-blue-700 flex items-center justify-center text-xs font-semibold flex-shrink-0">
+          JP
+        </div>
+        {expanded && (
+          <div className="flex-1 min-w-0">
+            <p className="text-xs font-medium truncate">Jean-Philippe</p>
+            <p className="text-xs text-muted-foreground truncate">Owner</p>
+          </div>
+        )}
+        {expanded && <LogOut className="size-4 text-muted-foreground flex-shrink-0" />}
+      </div>
+    </div>
+  )
+}
 
-      {/* User footer */}
-      <SidebarFooter>
-        <SidebarMenu>
-          <SidebarMenuItem>
-            <SidebarMenuButton size="lg" tooltip="Account">
-              <Avatar className="size-8 rounded-lg">
-                <AvatarFallback className="rounded-lg bg-blue-100 text-blue-700 text-xs font-semibold">
-                  JP
-                </AvatarFallback>
-              </Avatar>
-              <div className="flex flex-col gap-0.5 leading-none text-left">
-                <span className="text-sm font-medium">Jean-Philippe</span>
-                <span className="text-xs text-muted-foreground">Owner</span>
-              </div>
-              <LogOut className="ml-auto size-4 text-muted-foreground" />
-            </SidebarMenuButton>
-          </SidebarMenuItem>
-        </SidebarMenu>
-      </SidebarFooter>
-
-    </Sidebar>
+function NavSection({ items, activePage, setActivePage, expanded }) {
+  return (
+    <div className="flex flex-col gap-0.5 px-2">
+      {items.map(item => {
+        const active = activePage === item.label
+        return (
+          <button
+            key={item.label}
+            onClick={() => setActivePage(item.label)}
+            className={`flex items-center gap-3 rounded-md px-2 py-2 text-sm transition-colors w-full text-left
+              ${active
+                ? "bg-sidebar-accent text-sidebar-accent-foreground font-medium"
+                : "text-sidebar-foreground hover:bg-sidebar-accent/60"
+              }`}
+          >
+            <item.icon className="size-5 flex-shrink-0" />
+            {expanded && <span className="whitespace-nowrap">{item.label}</span>}
+          </button>
+        )
+      })}
+    </div>
   )
 }

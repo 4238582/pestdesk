@@ -1,6 +1,5 @@
 import { useState } from "react"
-import { SidebarProvider, SidebarTrigger, SidebarInset } from "@/components/ui/sidebar"
-import { AppSidebar } from "@/components/AppSidebar"
+import { AppSidebar, SIDEBAR_COLLAPSED_W } from "@/components/AppSidebar"
 import { GlobalSearch } from "@/components/GlobalSearch"
 import Dashboard from "@/pages/Dashboard"
 import Leads from "@/pages/Leads"
@@ -47,12 +46,16 @@ function App() {
   }
 
   return (
-    <SidebarProvider defaultOpen={false}>
-      <AppSidebar activePage={activePage} setActivePage={p => { setActivePage(p); setSelectedLead(null) }} />
-      <SidebarInset>
-        <div className="flex items-center h-12 px-4 border-b bg-background gap-3 sticky top-0 z-10">
-          <SidebarTrigger className="flex-shrink-0" />
-          <div className="h-4 w-px bg-border flex-shrink-0" />
+    <div className="flex h-screen w-full bg-background">
+      <AppSidebar
+        activePage={activePage}
+        setActivePage={p => { setActivePage(p); setSelectedLead(null) }}
+      />
+      <div
+        className="flex flex-col flex-1 min-w-0 overflow-hidden transition-all duration-200"
+        style={{ marginLeft: SIDEBAR_COLLAPSED_W }}
+      >
+        <div className="flex items-center h-12 px-4 border-b bg-background gap-3 flex-shrink-0">
           <div className="flex-1 flex justify-center">
             <GlobalSearch onNavigate={handleSearchNav} />
           </div>
@@ -60,11 +63,11 @@ function App() {
             {activePage}{selectedLead ? ` · ${selectedLead.name}` : ""}
           </span>
         </div>
-        <div className="flex-1 overflow-auto bg-muted/30 min-h-[calc(100vh-3rem)]">
+        <div className="flex-1 overflow-auto bg-muted/30">
           {renderPage()}
         </div>
-      </SidebarInset>
-    </SidebarProvider>
+      </div>
+    </div>
   )
 }
 
