@@ -160,10 +160,10 @@ export default function LeadDetail({ lead, onBack, onUpdate }) {
       </div>
 
       {/* ── 3 panels ── */}
-      <div className="flex gap-4 p-4 border-b bg-background flex-shrink-0" style={{height: 380}}>
+      <div className="flex gap-4 p-4 border-b bg-background flex-shrink-0" style={{height: 220}}>
 
         {/* Tasks */}
-        <div className="flex-1 rounded-lg border flex flex-col overflow-hidden" style={{height: 360}}>
+        <div className="flex-1 rounded-lg border flex flex-col overflow-hidden" style={{height: 200}}>
           <div className="flex items-center justify-between px-3 py-2.5 border-b">
             <span className="text-xs font-semibold">Tasks & appointments</span>
             <button onClick={() => setTaskDialog(true)}
@@ -171,12 +171,17 @@ export default function LeadDetail({ lead, onBack, onUpdate }) {
               Add
             </button>
           </div>
-          <div className="flex-1 flex flex-col items-center justify-center gap-2 p-4 text-muted-foreground">
+          <div className="flex-1 flex items-center p-4 text-muted-foreground gap-3">
             {tasks.length === 0 ? (
-              <>
-                <ClipboardList className="size-8 opacity-25" />
-                <p className="text-xs">No tasks scheduled</p>
-              </>
+              <div className="flex items-center gap-4 w-full">
+                <div className="size-12 rounded-lg bg-muted flex items-center justify-center flex-shrink-0">
+                  <ClipboardList className="size-6 opacity-50" />
+                </div>
+                <div>
+                  <p className="text-xs font-medium text-foreground">No tasks scheduled</p>
+                  <button onClick={() => setTaskDialog(true)} className="text-xs text-blue-500 hover:underline mt-0.5">Add one</button>
+                </div>
+              </div>
             ) : tasks.map(task => {
               const TI = taskTypes.find(t => t.value === task.type)?.icon || ClipboardList
               return (
@@ -192,26 +197,40 @@ export default function LeadDetail({ lead, onBack, onUpdate }) {
         </div>
 
         {/* Communications */}
-        <div className="flex-1 rounded-lg border flex flex-col overflow-hidden" style={{height: 360}}>
+        <div className="flex-1 rounded-lg border flex flex-col overflow-hidden" style={{height: 200}}>
           <div className="flex items-center gap-2 px-3 py-2.5 border-b">
             <span className="text-xs font-semibold">Communications</span>
           </div>
-          <div className="flex-1 flex flex-col items-center justify-center gap-2 p-4 text-muted-foreground">
-            <Mail className="size-8 opacity-25" />
-            <p className="text-xs">No communications yet</p>
+          <div className="flex-1 flex items-center p-4">
+            <div className="flex items-center gap-4 w-full">
+              <div className="size-12 rounded-lg bg-muted flex items-center justify-center flex-shrink-0">
+                <Mail className="size-6 opacity-50" />
+              </div>
+              <div>
+                <p className="text-xs font-medium">No communications yet</p>
+                <p className="text-xs text-muted-foreground mt-0.5">Calls, emails and SMS appear here</p>
+              </div>
+            </div>
           </div>
         </div>
 
         {/* Notes */}
-        <div className="flex-1 rounded-lg border flex flex-col overflow-hidden" style={{height: 360}}>
+        <div className="flex-1 rounded-lg border flex flex-col overflow-hidden" style={{height: 200}}>
           <div className="flex items-center gap-2 px-3 py-2.5 border-b">
             <span className="text-xs font-semibold">Notes</span>
           </div>
           <div className="flex-1 overflow-y-auto">
             {notes.length === 0 ? (
-              <div className="flex flex-col items-center justify-center h-full gap-2 text-muted-foreground p-4">
-                <FileText className="size-8 opacity-25" />
-                <p className="text-xs">No notes</p>
+              <div className="flex items-center p-4">
+                <div className="flex items-center gap-4 w-full">
+                  <div className="size-12 rounded-lg bg-muted flex items-center justify-center flex-shrink-0">
+                    <FileText className="size-6 opacity-50" />
+                  </div>
+                  <div>
+                    <p className="text-xs font-medium">No notes</p>
+                    <p className="text-xs text-muted-foreground mt-0.5">Notes added here are visible to all reps</p>
+                  </div>
+                </div>
               </div>
             ) : (
               <div className="p-2 flex flex-col gap-1.5">
@@ -233,17 +252,17 @@ export default function LeadDetail({ lead, onBack, onUpdate }) {
 
       {/* ── Note composer (below the 3 panels, above pipeline) ── */}
       <div className="border-b bg-background flex-shrink-0 relative">
-        <div className="flex items-center gap-3 px-4 py-2 border-b">
+        <div className="flex items-center gap-3 px-4 py-2.5 border-b">
           <div className="size-7 rounded-full bg-blue-100 text-blue-700 flex items-center justify-center text-xs font-semibold flex-shrink-0">JP</div>
           <span className="text-xs text-muted-foreground">Add a note or drop a file here</span>
-          <div className="ml-auto flex items-center gap-2">
-            <button className="text-muted-foreground hover:text-foreground"><User className="size-3.5" /></button>
-            <button className="text-muted-foreground hover:text-foreground"><MessageSquare className="size-3.5" /></button>
+          <div className="ml-auto flex items-center gap-3">
+            <button className="text-muted-foreground hover:text-foreground"><User className="size-4" /></button>
+            <button className="text-muted-foreground hover:text-foreground"><MessageSquare className="size-4" /></button>
             <button onClick={saveNote} className="text-xs bg-blue-600 hover:bg-blue-700 text-white px-4 py-1.5 rounded font-medium transition-colors">Save</button>
           </div>
         </div>
         <textarea
-          className="w-full bg-transparent px-4 py-2 text-xs resize-none outline-none min-h-[60px]"
+          className="w-full bg-transparent px-4 py-3 text-sm resize-none outline-none min-h-[72px]"
           placeholder="Write a note... type @ to tag a colleague"
           value={noteText}
           onChange={handleNoteInput}
