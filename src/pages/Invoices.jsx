@@ -1,5 +1,5 @@
 import { useState } from "react"
-import { Plus, Search, FileText, CheckCircle2, Clock, AlertCircle, Download, Eye, Send, Mail } from "lucide-react"
+import { Plus, Search, FileText, CheckCircle2, Clock, AlertCircle, Download, Eye, Send, Mail, ExternalLink } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog"
 import { Input } from "@/components/ui/input"
@@ -130,6 +130,7 @@ export default function Invoices() {
   const [open, setOpen] = useState(false)
   const [form, setForm] = useState(emptyForm)
   const [preview, setPreview] = useState(null)
+  const [sendConfirm, setSendConfirm] = useState(null) // invoice being confirmed for send
 
   const filtered = invoices.filter(inv => {
     const matchSearch = inv.client.toLowerCase().includes(search.toLowerCase()) ||
@@ -159,6 +160,10 @@ export default function Invoices() {
   }
 
   function sendInvoice(inv) {
+    setSendConfirm({ ...inv })
+  }
+
+  function confirmSend(inv) {
     const tax = calcTax(inv.amount, inv.province)
     const subject = encodeURIComponent(`Invoice ${inv.id} from Hull Pest Control`)
     const body = encodeURIComponent(
@@ -169,9 +174,10 @@ export default function Invoices() {
     )
     window.open(`mailto:${inv.email || ""}?subject=${subject}&body=${body}`)
     setInvoices(prev => prev.map(i => i.id === inv.id
-      ? { ...i, sent: true, status: i.status === "Draft" ? "Unpaid" : i.status }
+      ? { ...i, email: inv.email, sent: true, status: i.status === "Draft" ? "Unpaid" : i.status }
       : i
     ))
+    setSendConfirm(null)
   }
 
   function markPaid(inv) {
@@ -257,6 +263,10 @@ export default function Invoices() {
                         <p className="text-xs font-medium">{inv.client}</p>
                         <p className="text-xs text-muted-foreground">{inv.phone}</p>
                       </div>
+                      <button title="Open client sheet"
+                        className="size-6 border rounded flex items-center justify-center text-muted-foreground hover:text-foreground hover:bg-accent transition-colors flex-shrink-0 ml-1">
+                        <ExternalLink className="size-3" />
+                      </button>
                     </div>
                   </td>
                   <td className="px-4 py-3 text-xs text-muted-foreground max-w-[160px] truncate">{inv.service}</td>
@@ -376,6 +386,51 @@ export default function Invoices() {
           </DialogFooter>
         </DialogContent>
       </Dialog>
+
+      {/* Send confirmation dialog */}
+      {sendConfirm && (
+        <>
+          <div className="fixed inset-0 z-40" style={{ background: "rgba(0,0,0,0.75)" }} onClick={() => setSendConfirm(null)} />
+          <div className="fixed top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 z-50 w-[420px] rounded-2xl border shadow-2xl p-6"
+            style={{ background: "hsl(220, 13%, 13%)" }}>
+            <h2 className="text-base font-semibold mb-1">Send invoice</h2>
+            <p className="text-xs text-muted-foreground mb-4">Verify the client's email before sending.</p>
+            <div className="flex flex-col gap-3">
+              <div>
+                <Label className="text-xs text-muted-foreground">Client</Label>
+                <p className="text-sm font-medium mt-0.5">{sendConfirm.client}</p>
+              </div>
+              <div>
+                <Label className="text-xs text-muted-foreground">Email address</Label>
+                <div className="flex items-center gap-2 mt-1">
+                  <Mail className="size-4 text-muted-foreground flex-shrink-0" />
+                  <Input
+                    value={sendConfirm.email || ""}
+                    onChange={e => setSendConfirm(c => ({...c, email: e.target.value}))}
+                    placeholder="client@email.com"
+                    className="flex-1"
+                  />
+                </div>
+              </div>
+              <div className="rounded-lg border p-3 text-xs bg-muted/20">
+                <p className="text-muted-foreground mb-1">Will send:</p>
+                <p className="font-medium">{sendConfirm.id} — {sendConfirm.service}</p>
+                <p className="text-muted-foreground">Total: ${calcTax(sendConfirm.amount, sendConfirm.province).total.toFixed(2)} · Due: {sendConfirm.due}</p>
+              </div>
+            </div>
+            <div className="flex gap-3 mt-5">
+              <button onClick={() => setSendConfirm(null)}
+                className="flex-1 border rounded-lg py-2 text-sm hover:bg-accent transition-colors">
+                Cancel
+              </button>
+              <button onClick={() => confirmSend(sendConfirm)}
+                className="flex-1 bg-blue-600 hover:bg-blue-700 text-white rounded-lg py-2 text-sm font-medium transition-colors flex items-center justify-center gap-2">
+                <Send className="size-4" /> Send invoice
+              </button>
+            </div>
+          </div>
+        </>
+      )}
 
       {/* Invoice preview */}
       {preview && (() => {
