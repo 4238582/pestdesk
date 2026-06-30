@@ -1,21 +1,39 @@
 import { useState } from "react"
 import { Plus, Search, FileText, CheckCircle2, Clock, AlertCircle, Download, Eye } from "lucide-react"
 import { Button } from "@/components/ui/button"
-import { Badge } from "@/components/ui/badge"
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
+import jsPDF from "jspdf"
+
+// Canadian provincial/federal tax rates relevant to JP's service area
+const TAX_RATES = {
+  Quebec:  { label: "Quebec",  gst: 0.05,  pst: 0.09975, pstLabel: "QST" },
+  Ontario: { label: "Ontario", gst: 0,     pst: 0.13,    pstLabel: "HST", hstCombined: true },
+}
+
+function calcTax(amount, province) {
+  const rates = TAX_RATES[province]
+  if (!rates) return { gst: 0, pst: 0, total: amount }
+  if (rates.hstCombined) {
+    const hst = amount * rates.pst
+    return { gst: 0, pst: hst, pstLabel: rates.pstLabel, total: amount + hst }
+  }
+  const gst = amount * rates.gst
+  const pst = amount * rates.pst
+  return { gst, pst, pstLabel: rates.pstLabel, total: amount + gst + pst }
+}
 
 const initialInvoices = [
-  { id: "INV-001", client: "Martin Rousseau",      phone: "819-555-0101", date: "Jun 10, 2025", due: "Jun 24, 2025", amount: 285,  status: "Paid",    service: "Cockroach treatment" },
-  { id: "INV-002", client: "Sylvie Côté",           phone: "819-555-0202", date: "Jun 15, 2025", due: "Jun 29, 2025", amount: 195,  status: "Paid",    service: "Ant colony removal" },
-  { id: "INV-003", client: "Tremblay Landscaping",  phone: "819-555-0303", date: "Jun 18, 2025", due: "Jul 02, 2025", amount: 450,  status: "Unpaid",  service: "Wasp nest removal" },
-  { id: "INV-004", client: "Robert Gagné",          phone: "819-555-0611", date: "Jun 14, 2025", due: "Jun 28, 2025", amount: 680,  status: "Overdue", service: "Bed bug treatment" },
-  { id: "INV-005", client: "Pizza Palace Hull",     phone: "819-555-0720", date: "Jun 01, 2025", due: "Jun 15, 2025", amount: 320,  status: "Overdue", service: "Monthly pest inspection" },
-  { id: "INV-006", client: "Anne Dubois",           phone: "819-555-0455", date: "Jun 20, 2025", due: "Jul 04, 2025", amount: 175,  status: "Unpaid",  service: "Rodent inspection" },
-  { id: "INV-007", client: "Claude Bertrand",       phone: "819-555-0142", date: "Jun 22, 2025", due: "Jul 06, 2025", amount: 890,  status: "Unpaid",  service: "Bed bug full treatment" },
-  { id: "INV-008", client: "Manon Leblanc",         phone: "819-555-0399", date: "Jun 25, 2025", due: "Jul 09, 2025", amount: 240,  status: "Draft",   service: "Rodent control" },
+  { id: "INV-001", client: "Martin Rousseau",      phone: "819-555-0101", date: "Jun 10, 2025", due: "Jun 24, 2025", amount: 285,  status: "Paid",    service: "Cockroach treatment",     province: "Quebec" },
+  { id: "INV-002", client: "Sylvie Côté",           phone: "819-555-0202", date: "Jun 15, 2025", due: "Jun 29, 2025", amount: 195,  status: "Paid",    service: "Ant colony removal",       province: "Quebec" },
+  { id: "INV-003", client: "Tremblay Landscaping",  phone: "819-555-0303", date: "Jun 18, 2025", due: "Jul 02, 2025", amount: 450,  status: "Unpaid",  service: "Wasp nest removal",        province: "Quebec" },
+  { id: "INV-004", client: "Robert Gagné",          phone: "819-555-0611", date: "Jun 14, 2025", due: "Jun 28, 2025", amount: 680,  status: "Overdue", service: "Bed bug treatment",        province: "Quebec" },
+  { id: "INV-005", client: "Pizza Palace Hull",     phone: "819-555-0720", date: "Jun 01, 2025", due: "Jun 15, 2025", amount: 320,  status: "Overdue", service: "Monthly pest inspection",  province: "Quebec" },
+  { id: "INV-006", client: "Anne Dubois",           phone: "819-555-0455", date: "Jun 20, 2025", due: "Jul 04, 2025", amount: 175,  status: "Unpaid",  service: "Rodent inspection",        province: "Ontario" },
+  { id: "INV-007", client: "Claude Bertrand",       phone: "819-555-0142", date: "Jun 22, 2025", due: "Jul 06, 2025", amount: 890,  status: "Unpaid",  service: "Bed bug full treatment",   province: "Quebec" },
+  { id: "INV-008", client: "Manon Leblanc",         phone: "819-555-0399", date: "Jun 25, 2025", due: "Jul 09, 2025", amount: 240,  status: "Draft",   service: "Rodent control",           province: "Ontario" },
 ]
 
 const statusConfig = {
@@ -27,7 +45,83 @@ const statusConfig = {
 
 const services = ["Cockroach treatment", "Ant colony removal", "Wasp nest removal", "Bed bug treatment", "Rodent inspection", "Monthly pest inspection", "Rodent control", "Spider treatment", "Termite inspection"]
 
-const emptyForm = { client: "", phone: "", service: "", amount: "", due: "" }
+const emptyForm = { client: "", phone: "", service: "", amount: "", due: "", province: "Quebec" }
+
+function downloadInvoicePDF(inv) {
+  const tax = calcTax(inv.amount, inv.province)
+  const doc = new jsPDF()
+
+  doc.setFontSize(20)
+  doc.setFont(undefined, "bold")
+  doc.text("PestDesk", 20, 25)
+  doc.setFontSize(10)
+  doc.setFont(undefined, "normal")
+  doc.text("Hull Pest Control", 20, 32)
+
+  doc.setFontSize(14)
+  doc.setFont(undefined, "bold")
+  doc.text(`Invoice ${inv.id}`, 150, 25)
+  doc.setFontSize(9)
+  doc.setFont(undefined, "normal")
+  doc.text(`Date: ${inv.date}`, 150, 32)
+  doc.text(`Due: ${inv.due}`, 150, 37)
+
+  doc.setDrawColor(200)
+  doc.line(20, 45, 190, 45)
+
+  doc.setFontSize(10)
+  doc.setFont(undefined, "bold")
+  doc.text("Bill to:", 20, 55)
+  doc.setFont(undefined, "normal")
+  doc.text(inv.client, 20, 61)
+  doc.text(inv.phone, 20, 66)
+  doc.text(`Province: ${inv.province}`, 20, 71)
+
+  // Table header
+  let y = 90
+  doc.setFillColor(240, 240, 240)
+  doc.rect(20, y - 6, 170, 8, "F")
+  doc.setFont(undefined, "bold")
+  doc.text("Service", 24, y)
+  doc.text("Qty", 130, y)
+  doc.text("Amount", 160, y)
+  doc.setFont(undefined, "normal")
+
+  y += 10
+  doc.text(inv.service, 24, y)
+  doc.text("1", 130, y)
+  doc.text(`$${inv.amount.toFixed(2)}`, 160, y)
+
+  y += 15
+  doc.line(120, y, 190, y)
+  y += 8
+  doc.text("Subtotal", 130, y)
+  doc.text(`$${inv.amount.toFixed(2)}`, 160, y)
+
+  if (tax.gst > 0) {
+    y += 7
+    doc.text("GST (5%)", 130, y)
+    doc.text(`$${tax.gst.toFixed(2)}`, 160, y)
+  }
+  if (tax.pst > 0) {
+    y += 7
+    doc.text(`${tax.pstLabel}`, 130, y)
+    doc.text(`$${tax.pst.toFixed(2)}`, 160, y)
+  }
+
+  y += 10
+  doc.setFont(undefined, "bold")
+  doc.setFontSize(12)
+  doc.text("Total", 130, y)
+  doc.text(`$${tax.total.toFixed(2)}`, 160, y)
+
+  doc.setFontSize(8)
+  doc.setFont(undefined, "normal")
+  doc.setTextColor(150)
+  doc.text("Thank you for your business.", 20, 280)
+
+  doc.save(`${inv.id}-${inv.client.replace(/\s+/g, "-")}.pdf`)
+}
 
 export default function Invoices() {
   const [invoices, setInvoices] = useState(initialInvoices)
@@ -45,9 +139,9 @@ export default function Invoices() {
   })
 
   const totals = {
-    paid:    invoices.filter(i => i.status === "Paid").reduce((s, i) => s + i.amount, 0),
-    unpaid:  invoices.filter(i => i.status === "Unpaid").reduce((s, i) => s + i.amount, 0),
-    overdue: invoices.filter(i => i.status === "Overdue").reduce((s, i) => s + i.amount, 0),
+    paid:    invoices.filter(i => i.status === "Paid").reduce((s, i) => s + calcTax(i.amount, i.province).total, 0),
+    unpaid:  invoices.filter(i => i.status === "Unpaid").reduce((s, i) => s + calcTax(i.amount, i.province).total, 0),
+    overdue: invoices.filter(i => i.status === "Overdue").reduce((s, i) => s + calcTax(i.amount, i.province).total, 0),
   }
 
   function createInvoice() {
@@ -84,8 +178,8 @@ export default function Invoices() {
           { label: "Overdue",    value: totals.overdue, color: "text-red-500" },
         ].map(c => (
           <div key={c.label} className="rounded-xl border bg-card p-4">
-            <p className="text-xs text-muted-foreground">{c.label}</p>
-            <p className={`text-2xl font-semibold mt-1 ${c.color}`}>${c.value.toLocaleString()}</p>
+            <p className="text-xs text-muted-foreground">{c.label} <span className="text-muted-foreground/60">(w/ tax)</span></p>
+            <p className={`text-2xl font-semibold mt-1 ${c.color}`}>${c.value.toLocaleString(undefined, {maximumFractionDigits: 2})}</p>
           </div>
         ))}
       </div>
@@ -119,16 +213,17 @@ export default function Invoices() {
               <th className="text-left px-4 py-3 text-xs font-medium text-muted-foreground">Invoice</th>
               <th className="text-left px-4 py-3 text-xs font-medium text-muted-foreground">Client</th>
               <th className="text-left px-4 py-3 text-xs font-medium text-muted-foreground">Service</th>
-              <th className="text-left px-4 py-3 text-xs font-medium text-muted-foreground">Date</th>
+              <th className="text-left px-4 py-3 text-xs font-medium text-muted-foreground">Province</th>
               <th className="text-left px-4 py-3 text-xs font-medium text-muted-foreground">Due</th>
-              <th className="text-right px-4 py-3 text-xs font-medium text-muted-foreground">Amount</th>
+              <th className="text-right px-4 py-3 text-xs font-medium text-muted-foreground">Total (tax incl.)</th>
               <th className="text-left px-4 py-3 text-xs font-medium text-muted-foreground">Status</th>
               <th className="px-4 py-3" />
             </tr>
           </thead>
           <tbody>
-            {filtered.map((inv, i) => {
+            {filtered.map((inv) => {
               const cfg = statusConfig[inv.status]
+              const tax = calcTax(inv.amount, inv.province)
               return (
                 <tr key={inv.id} className="border-b last:border-b-0 hover:bg-accent/20 transition-colors">
                   <td className="px-4 py-3 text-xs font-mono text-muted-foreground">{inv.id}</td>
@@ -144,9 +239,9 @@ export default function Invoices() {
                     </div>
                   </td>
                   <td className="px-4 py-3 text-xs text-muted-foreground max-w-[160px] truncate">{inv.service}</td>
-                  <td className="px-4 py-3 text-xs text-muted-foreground">{inv.date}</td>
+                  <td className="px-4 py-3 text-xs text-muted-foreground">{inv.province}</td>
                   <td className="px-4 py-3 text-xs text-muted-foreground">{inv.due}</td>
-                  <td className="px-4 py-3 text-right text-sm font-semibold">${inv.amount.toLocaleString()}</td>
+                  <td className="px-4 py-3 text-right text-sm font-semibold">${tax.total.toFixed(2)}</td>
                   <td className="px-4 py-3">
                     <span className={`text-xs px-2 py-0.5 rounded-full font-medium ${cfg.color}`}>
                       {inv.status}
@@ -158,7 +253,8 @@ export default function Invoices() {
                         className="size-7 flex items-center justify-center rounded hover:bg-accent transition-colors text-muted-foreground hover:text-foreground">
                         <Eye className="size-3.5" />
                       </button>
-                      <button className="size-7 flex items-center justify-center rounded hover:bg-accent transition-colors text-muted-foreground hover:text-foreground">
+                      <button onClick={() => downloadInvoicePDF(inv)}
+                        className="size-7 flex items-center justify-center rounded hover:bg-accent transition-colors text-muted-foreground hover:text-foreground">
                         <Download className="size-3.5" />
                       </button>
                     </div>
@@ -195,9 +291,21 @@ export default function Invoices() {
                 </SelectContent>
               </Select>
             </div>
+
+            <div>
+              <Label className="text-xs text-muted-foreground">Province (for tax)</Label>
+              <Select value={form.province} onValueChange={v => setForm({...form, province: v})}>
+                <SelectTrigger className="mt-1"><SelectValue placeholder="Select province" /></SelectTrigger>
+                <SelectContent style={{ background: "hsl(220, 13%, 13%)" }}>
+                  <SelectItem value="Quebec">Quebec (GST 5% + QST 9.975%)</SelectItem>
+                  <SelectItem value="Ontario">Ontario (HST 13%)</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+
             <div className="grid grid-cols-2 gap-3">
               <div>
-                <Label className="text-xs text-muted-foreground">Amount ($)</Label>
+                <Label className="text-xs text-muted-foreground">Amount before tax ($)</Label>
                 <Input className="mt-1" placeholder="250" type="number" value={form.amount} onChange={e => setForm({...form, amount: e.target.value})} />
               </div>
               <div>
@@ -205,6 +313,22 @@ export default function Invoices() {
                 <Input className="mt-1" type="date" value={form.due} onChange={e => setForm({...form, due: e.target.value})} />
               </div>
             </div>
+
+            {form.amount && form.province && (
+              <div className="rounded-lg border p-3 text-xs flex flex-col gap-1 bg-muted/20">
+                {(() => {
+                  const t = calcTax(Number(form.amount), form.province)
+                  return (
+                    <>
+                      <div className="flex justify-between"><span className="text-muted-foreground">Subtotal</span><span>${Number(form.amount).toFixed(2)}</span></div>
+                      {t.gst > 0 && <div className="flex justify-between"><span className="text-muted-foreground">GST (5%)</span><span>${t.gst.toFixed(2)}</span></div>}
+                      {t.pst > 0 && <div className="flex justify-between"><span className="text-muted-foreground">{t.pstLabel}</span><span>${t.pst.toFixed(2)}</span></div>}
+                      <div className="flex justify-between font-semibold pt-1 border-t mt-1"><span>Total</span><span>${t.total.toFixed(2)}</span></div>
+                    </>
+                  )
+                })()}
+              </div>
+            )}
           </div>
           <DialogFooter>
             <Button variant="outline" onClick={() => setOpen(false)}>Cancel</Button>
@@ -214,60 +338,70 @@ export default function Invoices() {
       </Dialog>
 
       {/* Invoice preview */}
-      {preview && (
-        <>
-          <div className="fixed inset-0 z-40" style={{ background: "rgba(0,0,0,0.75)" }} onClick={() => setPreview(null)} />
-          <div className="fixed top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 z-50 w-[480px] rounded-2xl border shadow-2xl p-8"
-            style={{ background: "hsl(220, 13%, 13%)" }}>
-            <div className="flex items-start justify-between mb-6">
-              <div>
-                <div className="flex items-center gap-2 mb-1">
-                  <div className="size-8 rounded-lg bg-blue-600 flex items-center justify-center">
-                    <FileText className="size-4 text-white" />
+      {preview && (() => {
+        const tax = calcTax(preview.amount, preview.province)
+        return (
+          <>
+            <div className="fixed inset-0 z-40" style={{ background: "rgba(0,0,0,0.75)" }} onClick={() => setPreview(null)} />
+            <div className="fixed top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 z-50 w-[480px] rounded-2xl border shadow-2xl p-8"
+              style={{ background: "hsl(220, 13%, 13%)" }}>
+              <div className="flex items-start justify-between mb-6">
+                <div>
+                  <div className="flex items-center gap-2 mb-1">
+                    <div className="size-8 rounded-lg bg-blue-600 flex items-center justify-center">
+                      <FileText className="size-4 text-white" />
+                    </div>
+                    <span className="font-bold text-lg">PestDesk</span>
                   </div>
-                  <span className="font-bold text-lg">PestDesk</span>
+                  <p className="text-xs text-muted-foreground">Hull Pest Control</p>
                 </div>
-                <p className="text-xs text-muted-foreground">Hull Pest Control</p>
+                <div className="text-right">
+                  <p className="text-xs text-muted-foreground">Invoice</p>
+                  <p className="text-lg font-bold">{preview.id}</p>
+                </div>
               </div>
-              <div className="text-right">
-                <p className="text-xs text-muted-foreground">Invoice</p>
-                <p className="text-lg font-bold">{preview.id}</p>
+              <div className="grid grid-cols-2 gap-6 mb-6 text-sm">
+                <div>
+                  <p className="text-xs text-muted-foreground mb-1">Bill to</p>
+                  <p className="font-medium">{preview.client}</p>
+                  <p className="text-muted-foreground text-xs">{preview.phone}</p>
+                  <p className="text-muted-foreground text-xs">{preview.province}</p>
+                </div>
+                <div className="text-right">
+                  <p className="text-xs text-muted-foreground mb-1">Date issued</p>
+                  <p className="text-xs">{preview.date}</p>
+                  <p className="text-xs text-muted-foreground mt-1">Due date</p>
+                  <p className="text-xs">{preview.due}</p>
+                </div>
+              </div>
+              <div className="border rounded-lg overflow-hidden mb-4">
+                <div className="bg-muted/30 px-4 py-2 grid grid-cols-3 text-xs text-muted-foreground font-medium">
+                  <span>Service</span><span className="text-center">Qty</span><span className="text-right">Amount</span>
+                </div>
+                <div className="px-4 py-3 grid grid-cols-3 text-sm">
+                  <span>{preview.service}</span><span className="text-center">1</span><span className="text-right font-medium">${preview.amount.toFixed(2)}</span>
+                </div>
+              </div>
+              <div className="flex flex-col gap-1.5 text-sm mb-4">
+                <div className="flex justify-between text-muted-foreground"><span>Subtotal</span><span>${preview.amount.toFixed(2)}</span></div>
+                {tax.gst > 0 && <div className="flex justify-between text-muted-foreground"><span>GST (5%)</span><span>${tax.gst.toFixed(2)}</span></div>}
+                {tax.pst > 0 && <div className="flex justify-between text-muted-foreground"><span>{tax.pstLabel}</span><span>${tax.pst.toFixed(2)}</span></div>}
+              </div>
+              <div className="flex justify-between items-center border-t pt-4">
+                <span className="text-sm font-medium">Total</span>
+                <span className="text-xl font-bold">${tax.total.toFixed(2)}</span>
+              </div>
+              <div className="flex gap-3 mt-6">
+                <button onClick={() => setPreview(null)} className="flex-1 border rounded-lg py-2 text-sm hover:bg-accent transition-colors">Close</button>
+                <button onClick={() => downloadInvoicePDF(preview)}
+                  className="flex-1 bg-blue-600 hover:bg-blue-700 text-white rounded-lg py-2 text-sm font-medium transition-colors flex items-center justify-center gap-2">
+                  <Download className="size-4" /> Download PDF
+                </button>
               </div>
             </div>
-            <div className="grid grid-cols-2 gap-6 mb-6 text-sm">
-              <div>
-                <p className="text-xs text-muted-foreground mb-1">Bill to</p>
-                <p className="font-medium">{preview.client}</p>
-                <p className="text-muted-foreground text-xs">{preview.phone}</p>
-              </div>
-              <div className="text-right">
-                <p className="text-xs text-muted-foreground mb-1">Date issued</p>
-                <p className="text-xs">{preview.date}</p>
-                <p className="text-xs text-muted-foreground mt-1">Due date</p>
-                <p className="text-xs">{preview.due}</p>
-              </div>
-            </div>
-            <div className="border rounded-lg overflow-hidden mb-6">
-              <div className="bg-muted/30 px-4 py-2 grid grid-cols-3 text-xs text-muted-foreground font-medium">
-                <span>Service</span><span className="text-center">Qty</span><span className="text-right">Amount</span>
-              </div>
-              <div className="px-4 py-3 grid grid-cols-3 text-sm">
-                <span>{preview.service}</span><span className="text-center">1</span><span className="text-right font-medium">${preview.amount}</span>
-              </div>
-            </div>
-            <div className="flex justify-between items-center border-t pt-4">
-              <span className="text-sm font-medium">Total</span>
-              <span className="text-xl font-bold">${preview.amount.toLocaleString()}</span>
-            </div>
-            <div className="flex gap-3 mt-6">
-              <button onClick={() => setPreview(null)} className="flex-1 border rounded-lg py-2 text-sm hover:bg-accent transition-colors">Close</button>
-              <button className="flex-1 bg-blue-600 hover:bg-blue-700 text-white rounded-lg py-2 text-sm font-medium transition-colors flex items-center justify-center gap-2">
-                <Download className="size-4" /> Download PDF
-              </button>
-            </div>
-          </div>
-        </>
-      )}
+          </>
+        )
+      })()}
     </div>
   )
 }
