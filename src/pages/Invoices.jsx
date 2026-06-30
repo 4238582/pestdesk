@@ -1,5 +1,5 @@
 import { useState } from "react"
-import { Plus, Search, FileText, CheckCircle2, Clock, AlertCircle, Download, Eye } from "lucide-react"
+import { Plus, Search, FileText, CheckCircle2, Clock, AlertCircle, Download, Eye, Send, Mail } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog"
 import { Input } from "@/components/ui/input"
@@ -26,14 +26,14 @@ function calcTax(amount, province) {
 }
 
 const initialInvoices = [
-  { id: "INV-001", client: "Martin Rousseau",      phone: "819-555-0101", date: "Jun 10, 2025", due: "Jun 24, 2025", amount: 285,  status: "Paid",    service: "Cockroach treatment",     province: "Quebec" },
-  { id: "INV-002", client: "Sylvie Côté",           phone: "819-555-0202", date: "Jun 15, 2025", due: "Jun 29, 2025", amount: 195,  status: "Paid",    service: "Ant colony removal",       province: "Quebec" },
-  { id: "INV-003", client: "Tremblay Landscaping",  phone: "819-555-0303", date: "Jun 18, 2025", due: "Jul 02, 2025", amount: 450,  status: "Unpaid",  service: "Wasp nest removal",        province: "Quebec" },
-  { id: "INV-004", client: "Robert Gagné",          phone: "819-555-0611", date: "Jun 14, 2025", due: "Jun 28, 2025", amount: 680,  status: "Overdue", service: "Bed bug treatment",        province: "Quebec" },
-  { id: "INV-005", client: "Pizza Palace Hull",     phone: "819-555-0720", date: "Jun 01, 2025", due: "Jun 15, 2025", amount: 320,  status: "Overdue", service: "Monthly pest inspection",  province: "Quebec" },
-  { id: "INV-006", client: "Anne Dubois",           phone: "819-555-0455", date: "Jun 20, 2025", due: "Jul 04, 2025", amount: 175,  status: "Unpaid",  service: "Rodent inspection",        province: "Ontario" },
-  { id: "INV-007", client: "Claude Bertrand",       phone: "819-555-0142", date: "Jun 22, 2025", due: "Jul 06, 2025", amount: 890,  status: "Unpaid",  service: "Bed bug full treatment",   province: "Quebec" },
-  { id: "INV-008", client: "Manon Leblanc",         phone: "819-555-0399", date: "Jun 25, 2025", due: "Jul 09, 2025", amount: 240,  status: "Draft",   service: "Rodent control",           province: "Ontario" },
+  { id: "INV-001", client: "Martin Rousseau",      phone: "819-555-0101", email: "martin.r@gmail.com",     date: "Jun 10, 2025", due: "Jun 24, 2025", amount: 285,  status: "Paid",    service: "Cockroach treatment",     province: "Quebec",  sent: true },
+  { id: "INV-002", client: "Sylvie Côté",           phone: "819-555-0202", email: "sylvie.c@hotmail.com",   date: "Jun 15, 2025", due: "Jun 29, 2025", amount: 195,  status: "Paid",    service: "Ant colony removal",       province: "Quebec",  sent: true },
+  { id: "INV-003", client: "Tremblay Landscaping",  phone: "819-555-0303", email: "info@tremblay.com",      date: "Jun 18, 2025", due: "Jul 02, 2025", amount: 450,  status: "Unpaid",  service: "Wasp nest removal",        province: "Quebec",  sent: true },
+  { id: "INV-004", client: "Robert Gagné",          phone: "819-555-0611", email: "rgagne@outlook.com",     date: "Jun 14, 2025", due: "Jun 28, 2025", amount: 680,  status: "Overdue", service: "Bed bug treatment",        province: "Quebec",  sent: true },
+  { id: "INV-005", client: "Pizza Palace Hull",     phone: "819-555-0720", email: "contact@pizzapalace.ca", date: "Jun 01, 2025", due: "Jun 15, 2025", amount: 320,  status: "Overdue", service: "Monthly pest inspection",  province: "Quebec",  sent: true },
+  { id: "INV-006", client: "Anne Dubois",           phone: "819-555-0455", email: "anne.d@gmail.com",       date: "Jun 20, 2025", due: "Jul 04, 2025", amount: 175,  status: "Unpaid",  service: "Rodent inspection",        province: "Ontario", sent: false },
+  { id: "INV-007", client: "Claude Bertrand",       phone: "819-555-0142", email: "claude.b@gmail.com",     date: "Jun 22, 2025", due: "Jul 06, 2025", amount: 890,  status: "Unpaid",  service: "Bed bug full treatment",   province: "Quebec",  sent: false },
+  { id: "INV-008", client: "Manon Leblanc",         phone: "819-555-0399", email: "manon.l@gmail.com",      date: "Jun 25, 2025", due: "Jul 09, 2025", amount: 240,  status: "Draft",   service: "Rodent control",           province: "Ontario", sent: false },
 ]
 
 const statusConfig = {
@@ -45,7 +45,7 @@ const statusConfig = {
 
 const services = ["Cockroach treatment", "Ant colony removal", "Wasp nest removal", "Bed bug treatment", "Rodent inspection", "Monthly pest inspection", "Rodent control", "Spider treatment", "Termite inspection"]
 
-const emptyForm = { client: "", phone: "", service: "", amount: "", due: "", province: "Quebec" }
+const emptyForm = { client: "", phone: "", email: "", service: "", amount: "", due: "", province: "Quebec" }
 
 function downloadInvoicePDF(inv) {
   const tax = calcTax(inv.amount, inv.province)
@@ -152,9 +152,30 @@ export default function Invoices() {
       date: new Date().toLocaleDateString("en-CA", { month: "short", day: "numeric", year: "numeric" }),
       amount: Number(form.amount),
       status: "Draft",
+      sent: false,
     }, ...invoices])
     setOpen(false)
     setForm(emptyForm)
+  }
+
+  function sendInvoice(inv) {
+    const tax = calcTax(inv.amount, inv.province)
+    const subject = encodeURIComponent(`Invoice ${inv.id} from Hull Pest Control`)
+    const body = encodeURIComponent(
+      `Hi ${inv.client},\n\nPlease find your invoice details below.\n\n` +
+      `Invoice: ${inv.id}\nService: ${inv.service}\nSubtotal: $${inv.amount.toFixed(2)}\n` +
+      `Tax: $${(tax.total - inv.amount).toFixed(2)}\nTotal due: $${tax.total.toFixed(2)}\nDue date: ${inv.due}\n\n` +
+      `Thank you for your business!\nHull Pest Control`
+    )
+    window.open(`mailto:${inv.email || ""}?subject=${subject}&body=${body}`)
+    setInvoices(prev => prev.map(i => i.id === inv.id
+      ? { ...i, sent: true, status: i.status === "Draft" ? "Unpaid" : i.status }
+      : i
+    ))
+  }
+
+  function markPaid(inv) {
+    setInvoices(prev => prev.map(i => i.id === inv.id ? { ...i, status: "Paid" } : i))
   }
 
   return (
@@ -243,17 +264,30 @@ export default function Invoices() {
                   <td className="px-4 py-3 text-xs text-muted-foreground">{inv.due}</td>
                   <td className="px-4 py-3 text-right text-sm font-semibold">${tax.total.toFixed(2)}</td>
                   <td className="px-4 py-3">
-                    <span className={`text-xs px-2 py-0.5 rounded-full font-medium ${cfg.color}`}>
-                      {inv.status}
-                    </span>
+                    <div className="flex items-center gap-1.5">
+                      <span className={`text-xs px-2 py-0.5 rounded-full font-medium ${cfg.color}`}>
+                        {inv.status}
+                      </span>
+                      {inv.sent && <span title="Sent to client"><Send className="size-3 text-muted-foreground" /></span>}
+                    </div>
                   </td>
                   <td className="px-4 py-3">
                     <div className="flex items-center gap-1 justify-end">
-                      <button onClick={() => setPreview(inv)}
+                      {inv.status !== "Paid" && (
+                        <button onClick={() => markPaid(inv)} title="Mark as paid"
+                          className="size-7 flex items-center justify-center rounded hover:bg-accent transition-colors text-muted-foreground hover:text-green-500">
+                          <CheckCircle2 className="size-3.5" />
+                        </button>
+                      )}
+                      <button onClick={() => sendInvoice(inv)} title="Send to client"
+                        className="size-7 flex items-center justify-center rounded hover:bg-accent transition-colors text-muted-foreground hover:text-blue-500">
+                        <Send className="size-3.5" />
+                      </button>
+                      <button onClick={() => setPreview(inv)} title="Preview"
                         className="size-7 flex items-center justify-center rounded hover:bg-accent transition-colors text-muted-foreground hover:text-foreground">
                         <Eye className="size-3.5" />
                       </button>
-                      <button onClick={() => downloadInvoicePDF(inv)}
+                      <button onClick={() => downloadInvoicePDF(inv)} title="Download PDF"
                         className="size-7 flex items-center justify-center rounded hover:bg-accent transition-colors text-muted-foreground hover:text-foreground">
                         <Download className="size-3.5" />
                       </button>
@@ -278,9 +312,15 @@ export default function Invoices() {
               <Label className="text-xs text-muted-foreground">Client name</Label>
               <Input className="mt-1" placeholder="Jean Tremblay" value={form.client} onChange={e => setForm({...form, client: e.target.value})} />
             </div>
-            <div>
-              <Label className="text-xs text-muted-foreground">Phone</Label>
-              <Input className="mt-1" placeholder="819-555-0000" value={form.phone} onChange={e => setForm({...form, phone: e.target.value})} />
+            <div className="grid grid-cols-2 gap-3">
+              <div>
+                <Label className="text-xs text-muted-foreground">Phone</Label>
+                <Input className="mt-1" placeholder="819-555-0000" value={form.phone} onChange={e => setForm({...form, phone: e.target.value})} />
+              </div>
+              <div>
+                <Label className="text-xs text-muted-foreground">Email</Label>
+                <Input className="mt-1" type="email" placeholder="jean@gmail.com" value={form.email} onChange={e => setForm({...form, email: e.target.value})} />
+              </div>
             </div>
             <div>
               <Label className="text-xs text-muted-foreground">Service</Label>
@@ -391,11 +431,21 @@ export default function Invoices() {
                 <span className="text-sm font-medium">Total</span>
                 <span className="text-xl font-bold">${tax.total.toFixed(2)}</span>
               </div>
-              <div className="flex gap-3 mt-6">
+              {preview.status !== "Paid" && (
+                <button onClick={() => { markPaid(preview); setPreview(p => ({...p, status: "Paid"})) }}
+                  className="w-full mt-4 border border-green-500/40 text-green-500 hover:bg-green-500/10 rounded-lg py-2 text-sm font-medium transition-colors flex items-center justify-center gap-2">
+                  <CheckCircle2 className="size-4" /> Mark as paid
+                </button>
+              )}
+              <div className="flex gap-3 mt-3">
                 <button onClick={() => setPreview(null)} className="flex-1 border rounded-lg py-2 text-sm hover:bg-accent transition-colors">Close</button>
+                <button onClick={() => sendInvoice(preview)}
+                  className="flex-1 border rounded-lg py-2 text-sm hover:bg-accent transition-colors flex items-center justify-center gap-2">
+                  <Mail className="size-4" /> Email
+                </button>
                 <button onClick={() => downloadInvoicePDF(preview)}
                   className="flex-1 bg-blue-600 hover:bg-blue-700 text-white rounded-lg py-2 text-sm font-medium transition-colors flex items-center justify-center gap-2">
-                  <Download className="size-4" /> Download PDF
+                  <Download className="size-4" /> PDF
                 </button>
               </div>
             </div>
